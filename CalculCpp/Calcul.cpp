@@ -14,7 +14,7 @@ void calculPortion(const double min, const double max, const unsigned long segme
 
 	double pas = (max - min) / (double) segments;
 
-	for (int i = 0; i < segments; i++) 
+	for (unsigned long i = 0; i < segments; i++) 
 	{
 		resultat += doCalc(x) * pas;
 		x += pas;
