@@ -4,7 +4,6 @@
 #include <string>
 #include <thread>
 
-
 double doCalc(double x) { return x * x; }
 
 void calculPortion(const double min, const double max, const unsigned long segments)
@@ -20,28 +19,31 @@ void calculPortion(const double min, const double max, const unsigned long segme
 		x += pas;
 	}
 
-	printf("De %e à %e : %f\n", min, max, resultat);
+	//printf("De %e à %e : %f\n", min, max, resultat);
 }
 
 int main(int argc, char *argv[])
 {
-
-	// read the number of cores of the machine
-	unsigned int nbCores = std::thread::hardware_concurrency();
-	
 	
 	// verify command line arguments
-	unsigned long nbSegments;
+	unsigned long nbSegments, nbCores;
 	double        min, max;
-	if(argc == 4)
+	
+	for (int i = 0 ; i < argc ; i++)
 	{
-		min        = std::stod(argv[1]);
-		max        = std::stod(argv[2]);
-		nbSegments = std::stol(argv[3]);
+		printf("%s\n", argv[i]);
+	}
+
+	if(argc == 5)
+	{
+		nbCores    = std::stol(argv[1]);
+		min        = std::stod(argv[2]);
+		max        = std::stod(argv[3]);
+		nbSegments = std::stol(argv[4]);
 	}
 	else
 	{
-		printf("Usage : %s <min> <max> <nbSegments>\n", argv[0]);
+		printf("Usage : %s <nbCores> <min> <max> <nbSegments>\n", argv[0]);
 		exit(1);
 	}
 
@@ -49,6 +51,11 @@ int main(int argc, char *argv[])
 	{
 		printf("Wrong input, maximum is inferior to minimum...");
 		exit(2);
+	}
+
+	if (nbCores < 0) {
+		printf("Impossible to use less than 1 core...");
+		exit(3);
 	}
 
 	double increment = (max - min) / (double) nbCores;
