@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"runtime"
 	"strconv"
 )
 
@@ -26,39 +25,44 @@ func calcSegment(min float64, max float64, segments int, chResultat chan string)
 		resultat += doCalc(x) * pas
 		x += pas
 	}
-
-	// convert number to strings
-	strMin := strconv.FormatFloat(min,      'E', -1, 64)
-	strMax := strconv.FormatFloat(max,      'E', -1, 64)
-	strRes := strconv.FormatFloat(resultat, 'E', -1, 64)
 	
-	chResultat <- "From " + strMin + " to " + strMax + " = " + strRes
+	// convert number to strings
+	// strMin := strconv.FormatFloat(min,      'E', -1, 64)
+	// strMax := strconv.FormatFloat(max,      'E', -1, 64)
+	// strRes := strconv.FormatFloat(resultat, 'E', -1, 64)
+	
+	//chResultat <- "From " + strMin + " to " + strMax + " = " + strRes
+	
+	chResultat <- "done"
 }
 
 func main() {
 
-
-	// read the number of cores of the machine
-	nbCores := runtime.NumCPU()
-
 	var min, max float64
-	var nbSegments int64
+	var nbSegments, nbCores int64
 	
 	// verify command line arguments
-	if len(os.Args) == 4 {
+	if len(os.Args) == 5 {
 
-		min, _        = strconv.ParseFloat(os.Args[1], 64) 
-		max, _        = strconv.ParseFloat(os.Args[2], 64)
-		nbSegments, _ = strconv.ParseInt(os.Args[3], 10, 64)
+		nbCores, _    = strconv.ParseInt(os.Args[1], 10, 64)
+		min, _        = strconv.ParseFloat(os.Args[2], 64) 
+		max, _        = strconv.ParseFloat(os.Args[3], 64)
+		nbSegments, _ = strconv.ParseInt(os.Args[4], 10, 64)
+		
 
 	} else {
-		fmt.Printf("Usage : %s <min> <max> <nbSegments>\n", os.Args[0])
+		fmt.Printf("Usage : %s <nbCores> <min> <max> <nbSegments>\n", os.Args[0])
 		os.Exit(1)
 	}
 
 	if min > max {
 		fmt.Println("Wrong input, maximum is inferior to minimum...")
 		os.Exit(2)
+	}
+	
+	if nbCores < 0 {
+		fmt.Println("Impossible to use less than 1 core...")
+		os.Exit(3)
 	}
 
 	// compute the increment, to distribute the same part to all the threads
@@ -67,10 +71,10 @@ func main() {
 	
 	max = min + increment
 
-	for i := 0; i < nbCores; i++ {
+	for i := 0 ; i < int(nbCores) ; i++ {
 		
 		// creation of child threads for computing
-		go calcSegment(min, max, int(nbSegments), chResultat)
+		go calcSegment(min, max, int(nbSegments/nbCores), chResultat)
 
 		// shifting the range for the next process
 		min += increment
@@ -78,7 +82,7 @@ func main() {
 	}
 
 	// we fetch and display data
-	for i := 0; i < nbCores; i++ {
-		fmt.Println(<-chResultat)
+	for i := 0; i < int(nbCores) ; i++ {
+		<-chResultat
 	}
 }
